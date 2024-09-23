@@ -675,26 +675,33 @@ require('lazy').setup({
       -- Snippet Engine & its associated nvim-cmp source
       {
         'L3MON4D3/LuaSnip',
-        build = (function()
-          -- Build Step is needed for regex support in snippets.
-          -- This step is not supported in many windows environments.
-          -- Remove the below condition to re-enable on windows.
-          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
-            return
-          end
-          return 'make install_jsregexp'
-        end)(),
+        build = vim.fn.has 'win32' ~= 0 and 'make install_jsregexp' or nil,
         dependencies = {
-          -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          'rafamadriz/friendly-snippets',
+          'benfowler/telescope-luasnip.nvim',
         },
+        config = function(_, opts)
+          if opts then
+            require('luasnip').config.setup(opts)
+          end
+          vim.tbl_map(function(type)
+            require('luasnip.loaders.from_' .. type).lazy_load()
+          end, { 'vscode', 'snipmate', 'lua' })
+          -- friendly-snippets - enable standardized comments snippets
+          require('luasnip').filetype_extend('typescript', { 'tsdoc' })
+          require('luasnip').filetype_extend('javascript', { 'jsdoc' })
+          require('luasnip').filetype_extend('lua', { 'luadoc' })
+          require('luasnip').filetype_extend('python', { 'pydoc' })
+          require('luasnip').filetype_extend('rust', { 'rustdoc' })
+          require('luasnip').filetype_extend('cs', { 'csharpdoc' })
+          require('luasnip').filetype_extend('java', { 'javadoc' })
+          require('luasnip').filetype_extend('c', { 'cdoc' })
+          require('luasnip').filetype_extend('cpp', { 'cppdoc' })
+          require('luasnip').filetype_extend('php', { 'phpdoc' })
+          require('luasnip').filetype_extend('kotlin', { 'kdoc' })
+          require('luasnip').filetype_extend('ruby', { 'rdoc' })
+          require('luasnip').filetype_extend('sh', { 'shelldoc' })
+        end,
       },
       'saadparwaiz1/cmp_luasnip',
 
@@ -886,7 +893,7 @@ require('lazy').setup({
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
